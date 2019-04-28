@@ -1,0 +1,16 @@
+Getting Statistics for: Email
+Number of Nodes: 1005
+Number of Edges: 16706
+Avg Clustering Coefficient: 0.3993549664221539
+
+
+Getting Statistics for: Flickr
+Number of Nodes: 80513
+Number of Edges: 5899882
+Avg Clustering Coefficient: 0.1652255924360774
+
+
+Getting Statistics for: BlogCatalog
+Number of Nodes: 10312
+Number of Edges: 333983
+Avg Clustering Coefficient: 0.4631956780330236

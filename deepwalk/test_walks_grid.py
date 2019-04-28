@@ -2,12 +2,13 @@
 
 import networkx as nx
 import matplotlib.pyplot as plt
+import networkx
 from graph import *
 
 G = nx.grid_2d_graph(7, 7)
 pos = dict( (n, n) for n in G.nodes() )
 deepwalk_G = from_networkx_forreal(G)
-random_walk = deepwalk_G.no_backtracking_random_walk(15, start=(4, 4))
+random_walk = deepwalk_G.mbrw_random_walk(15, start=(4, 4), bias_val=100)
 edges = G.edges()
 for edge in edges:
     found = False
@@ -29,12 +30,6 @@ color_map = ['yellow' for x in G.nodes]
 edges,weights = zip(*nx.get_edge_attributes(G,'weight').items())
 edges,colors = zip(*nx.get_edge_attributes(G,'color').items())
 plt.figure(figsize=(18,18))
-plt.title("Generic Random Walk of Path: "+str(random_walk))
+plt.title("Memory-Biased Random Walk of Path: "+str(random_walk))
 nx.draw(G,pos=pos, node_color=color_map, node_size=500, edgelist=edges, with_labels=True, edge_color=colors, width=weights)
 plt.show()
-
-
-
-
-
-

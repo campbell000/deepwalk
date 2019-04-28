@@ -49,17 +49,17 @@ def count_lines(f):
     return 0
 
 def _write_walks_to_disk(args):
-  walk_selection, num_paths, path_length, alpha, rand, f = args
+  bias_val, walk_selection, num_paths, path_length, alpha, rand, f = args
   G = __current_graph
   t_0 = time()
   with open(f, 'w') as fout:
-    for walk in graph.build_deepwalk_corpus_iter(walk_selection=walk_selection,
+    for walk in graph.build_deepwalk_corpus_iter(bias_val=bias_val, walk_selection=walk_selection,
                                                  G=G, num_paths=num_paths, path_length=path_length,alpha=alpha, rand=rand):
       fout.write(u"{}\n".format(u" ".join(v for v in walk)))
   logger.debug("Generated new file {}, it took {} seconds".format(f, time() - t_0))
   return f
 
-def write_walks_to_disk(walk_selection, G, filebase, num_paths, path_length, alpha=0, rand=random.Random(0),
+def write_walks_to_disk(bias_val, walk_selection, G, filebase, num_paths, path_length, alpha=0, rand=random.Random(0),
                         num_workers=cpu_count(),
                         always_rebuild=True):
   global __current_graph
@@ -78,7 +78,7 @@ def write_walks_to_disk(walk_selection, G, filebase, num_paths, path_length, alp
   with ProcessPoolExecutor(max_workers=num_workers) as executor:
     for size, file_, ppw in zip(executor.map(count_lines, files_list), files_list, paths_per_worker):
       if always_rebuild or size != (ppw*expected_size):
-        args_list.append((walk_selection, ppw, path_length, alpha, random.Random(rand.randint(0, 2**31)), file_))
+        args_list.append((bias_val, walk_selection, ppw, path_length, alpha, random.Random(rand.randint(0, 2**31)), file_))
       else:
         files.append(file_)
 

@@ -178,9 +178,9 @@ class Graph(defaultdict):
       cur = path[-1]
       nodes_to_visit = G[cur]
 
-      # If list's size is >= 2, remove the second-to-last node from the list of candidate nodes to visit
-      if len(nodes_to_visit) >= 2:
-        nodes_to_visit = remove_values_from_list(nodes_to_visit, nodes_to_visit[-1])
+      # If path's size is >= 2, remove the second-to-last node from the list of candidate nodes to visit
+      if len(path) >= 2:
+        nodes_to_visit = remove_values_from_list(nodes_to_visit, path[-2])
 
       if len(nodes_to_visit) > 0:
         if rand.random() >= alpha:
@@ -206,8 +206,8 @@ class Graph(defaultdict):
       nodes_to_visit = G[cur]
 
       # Get all neighbors, but remove the node we just visited
-      if len(nodes_to_visit) >= 2:
-        nodes_to_visit = remove_values_from_list(nodes_to_visit, nodes_to_visit[-2])
+      if len(path) >= 2:
+        nodes_to_visit = remove_values_from_list(nodes_to_visit, path[-2])
 
       # If no valid neighbors exist, stop. Otherwise, proceed with the algorithm
       if len(nodes_to_visit) == 0:
@@ -218,31 +218,33 @@ class Graph(defaultdict):
         memory_buffer = path[-memory_size-1:-1]
 
         # init default probabilities to visit each node
-        probabilities = [(1/(bias_val + len(nodes_to_visit))) for x in nodes_to_visit]
+        probabilities = [(1/(bias_val + len(nodes_to_visit)-1)) for x in nodes_to_visit]
 
         # check to see if a candidate neighbor is in our memory buffer. Take the LAST ocurrence, since this will be the most
         # recent node visited
         neighbor_index_in_memory = -1
-        for node_in_memory in enumerate(memory_buffer):
+        for idx, node_in_memory in enumerate(memory_buffer):
           if node_in_memory in nodes_to_visit:
-            neighbor_index_in_memory = nodes_to_visit.index(nodes_to_visit)
+            neighbor_index_in_memory = nodes_to_visit.index(node_in_memory)
 
         # if one of the neighbors is in memory, make that probability MUCH larger
         if neighbor_index_in_memory != -1:
-          probabilities[neighbor_index_in_memory] = bias_val / (bias_val + len(nodes_to_visit))
+          probabilities[neighbor_index_in_memory] = bias_val / (bias_val + len(nodes_to_visit)-1)
+
         # Otherwise, normalize the probabilities so they add up to 1, and are all the same
         else:
           prob_total = sum(probabilities)
-          probabilities = [(x / probabilities) for x in probabilities]
+          probabilities = [(x / prob_total) for x in probabilities]
 
         # Finally, choose the neighbor to go to based on the probabilities we constructed
-        path.append(np.random.choice(nodes_to_visit, p=probabilities))
+        # Workaround because random.choice doesn't like tuples
+        choice_idx = np.random.choice(len(nodes_to_visit), p=probabilities)
+        path.append(nodes_to_visit[choice_idx])
 
     return [str(node) for node in path]
 
-
 # TODO add build_walks in here
-def do_random_walk(walk_selection, G, path_length, rand, alpha, node):
+def do_random_walk(walk_selection, G, path_length, rand, alpha, node, bias_val=1000):
   if walk_selection == "uniformly_random":
     return G.random_walk(path_length, rand=rand, alpha=alpha, start=node)
   elif walk_selection == "self_avoiding":
@@ -250,11 +252,11 @@ def do_random_walk(walk_selection, G, path_length, rand, alpha, node):
   elif walk_selection == "no_backtracking":
     return G.no_backtracking_random_walk(path_length, rand=rand, alpha=alpha, start=node)
   elif walk_selection == "mbrw":
-    return G.no_backtracking_random_walk(path_length, rand=rand, alpha=alpha, start=node)
+    return G.mbrw_random_walk(path_length, bias_val=bias_val, rand=rand, alpha=alpha, start=node)
   else:
     raise Exception("INVALID WALK SELECTION: "+str(walk_selection))
 
-def build_deepwalk_corpus(walk_selection, G, num_paths, path_length, alpha=0,
+def build_deepwalk_corpus(bias_val, walk_selection, G, num_paths, path_length, alpha=0,
                           rand=random.Random(0)):
   walks = []
 
@@ -263,12 +265,12 @@ def build_deepwalk_corpus(walk_selection, G, num_paths, path_length, alpha=0,
   for cnt in range(num_paths):
     rand.shuffle(nodes)
     for node in nodes:
-      walks.append(do_random_walk(walk_selection, G, path_length, rand, alpha, node))
+      walks.append(do_random_walk(walk_selection, G, path_length, rand, alpha, node, bias_val=bias_val))
 
   return walks
 
 
-def build_deepwalk_corpus_iter(walk_selection, G, num_paths, path_length, alpha=0,
+def build_deepwalk_corpus_iter(bias_val, walk_selection, G, num_paths, path_length, alpha=0,
                                rand=random.Random(0)):
   walks = []
 
@@ -277,7 +279,7 @@ def build_deepwalk_corpus_iter(walk_selection, G, num_paths, path_length, alpha=
   for cnt in range(num_paths):
     rand.shuffle(nodes)
     for node in nodes:
-      yield do_random_walk(walk_selection, G, path_length, rand, alpha, node)
+      yield do_random_walk(walk_selection, G, path_length, rand, alpha, node, bias_val=bias_val)
 
 
 def clique(size):
