@@ -82,7 +82,7 @@ def main():
   if args.all:
     training_percents = numpy.asarray(range(1, 10)) * .1
   else:
-    training_percents = [0.1, 0.5, 0.9]
+    training_percents = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]
   for train_percent in training_percents:
     for shuf in shuffles:
   

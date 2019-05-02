@@ -261,11 +261,14 @@ def build_deepwalk_corpus(bias_val, walk_selection, G, num_paths, path_length, a
   walks = []
 
   nodes = list(G.nodes())
-
+  count = 0
   for cnt in range(num_paths):
     rand.shuffle(nodes)
     for node in nodes:
+      count = count + 1
       walks.append(do_random_walk(walk_selection, G, path_length, rand, alpha, node, bias_val=bias_val))
+      if (count % 1000 == 0):
+        print(count)
 
   return walks
 
