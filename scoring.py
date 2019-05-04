@@ -127,6 +127,7 @@ def main():
   
   print ('Results, using embeddings of dimensionality', X.shape[1])
   print ('-------------------')
+  all = {"micro":[], "macro":[]}
   for train_percent in sorted(all_results.keys()):
     print ('Train percent:', train_percent)
     for index, result in enumerate(all_results[train_percent]):
@@ -137,8 +138,16 @@ def main():
         avg_score[metric] += score
     for metric in avg_score:
       avg_score[metric] /= len(all_results[train_percent])
+    all["micro"].append(avg_score["micro"])
+    all["macro"].append(avg_score["macro"])
+
     print ('Average score:', dict(avg_score))
     print ('-------------------')
+
+  print("Micro:")
+  print(all["micro"])
+  print("Macro:")
+  print(all["macro"])
 
 if __name__ == "__main__":
   sys.exit(main())
